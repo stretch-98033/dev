@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Alaska Flight Status Finder</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <style>
+    :root {
+      --bg-color: #ffffff;
+      --text-color: #000000;
+      --input-bg: #f5f5f5;
+      --button-bg: #00427a;
+      --button-text: #ffffff;
+      --badge-bg: #e0e0e0;
+      --badge-text: #000000;
+      --delete-btn-color: red;
+      --gradient: linear-gradient(45deg, #0077cc, #00427a);
+      --border-radius: 5px;
+      --border-width: 2px;
+      --focus-glow: 0 0 8px rgba(0, 119, 204, 0.7);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-color: #121212;
+        --text-color: #f0f0f0;
+        --input-bg: #1e1e1e;
+        --button-bg: #0077cc;
+        --button-text: #ffffff;
+        --badge-bg: #333333;
+        --badge-text: #f0f0f0;
+        --delete-btn-color: #ff6b6b;
+        --gradient: linear-gradient(45deg, #66aaff, #00427a);
+        --focus-glow: 0 0 8px rgba(102, 170, 255, 0.7);
+      }
+    }
+
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    input:-webkit-autofill:active {
+      transition: background-color 9999s ease-out, color 9999s ease-out;
+      -webkit-text-fill-color: var(--text-color) !important;
+      background-color: var(--input-bg) !important;
+      box-shadow: 0 0 0px 1000px var(--input-bg) inset !important;
+      border: var(--border-width) solid transparent;
+      border-radius: var(--border-radius);
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      background-clip: padding-box, border-box;
+      background-image:
+        linear-gradient(var(--input-bg), var(--input-bg)),
+        var(--gradient);
+}
+
+
+
+
+    h2 {
+      text-align: center;
+    }
+
+    body {
+      font-family: sans-serif;
+      padding: 2em;
+      max-width: 400px;
+      margin: auto;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      border-radius: var(--border-radius);
+      box-sizing: border-box;
+    }
+
+    *, *::before, *::after {
+      box-sizing: inherit;
+    }
+
+    input[type="text"],
+    select,
+    button {
+      width: 100%;
+      padding: 0.8em;
+      margin: 0.5em 0;
+      font-size: 1em;
+      border: var(--border-width) solid transparent;
+      border-radius: var(--border-radius);
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      background-clip: padding-box, border-box;
+      background-image:
+        linear-gradient(var(--input-bg), var(--input-bg)),
+        var(--gradient);
+      text-align: center;
+      transform: scale(1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    input[type="text"]:focus,
+    select:focus,
+    button:focus {
+      outline: none;
+      box-shadow: var(--focus-glow);
+      border-color: transparent;
+      transform: scale(1.05);
+      transition: all 0.3s ease, box-shadow 2.3s ease;
+    }
+
+    button {
+      background-color: transparent;
+      color: var(--button-text);
+      cursor: pointer;
+      background:
+        linear-gradient(var(--button-bg), var(--button-bg)) padding-box,
+        var(--gradient) border-box;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      opacity: 0.9;
+      transform: scale(1.05);
+    }
+
+    .checkbox-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .checkbox-wrapper input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+      cursor: pointer;
+    }
+
+    .checkbox-wrapper label {
+      margin: 0;
+      font-size: 0.95em;
+      cursor: pointer;
+    }
+
+    #searchHistory {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap-reverse;
+      flex-direction: row-reverse;
+      justify-content: space-evenly;
+      margin-bottom: 1em;
+      padding: 4px;
+    }
+
+    .badge {
+      flex: 1 1 42%;
+      max-width: 150px;
+      min-width: 110px;
+      background-color: var(--badge-bg);
+      color: var(--badge-text);
+      border-radius: var(--border-radius);
+      padding: 13px 10px;
+      cursor: pointer;
+      position: relative;
+      border: var(--border-width) solid transparent;
+      background:
+        linear-gradient(var(--badge-bg), var(--badge-bg)) padding-box,
+        var(--gradient) border-box;
+      background-clip: padding-box, border-box;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      user-select: none;
+    }
+
+    .badge:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 12px rgba(0, 119, 204, 0.7);
+      z-index: 1;
+    }
+
+    .delete-btn {
+      position: absolute;
+      right: 3px;
+      top: 0px;
+      color: var(--delete-btn-color);
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1.1em;
+      user-select: none;
+      transition: color 0.2s ease;
+    }
+
+    .delete-btn:hover {
+      color: #ff0000;
+    }
+
+    #warningMessage {
+      color: orange;
+      font-size: 0.9em;
+      display: none;
+      border: var(--border-width) solid transparent;
+      border-image: var(--gradient) 1;
+      border-radius: var(--border-radius);
+      padding: 0.7em 1em;
+      margin-top: 0.5em;
+      background-color: var(--input-bg);
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      margin-top: 1em;
+      margin-bottom: 0.3em;
+      user-select: none;
+      text-align: center;
+    }
+
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: underline;
+    }
+
+    #lastUpdated {
+      text-align: center;
+      font-size: 0.75em;
+      font-style: italic;
+      margin-top: 2em;
+      color: gray;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>Alaska Flight Status Finder</h2>
+  <p style="font-size: 0.8em; font-weight: normal; text-align: center; color: gray; margin-top: -0.5em; margin-bottom: 1em;">
+    Description: Alaska Airlines creates unique flight status pages for every flight. They are created 4 days in advance and live for 2–3 days after the flight. Enter the flight number and choose Today, Tomorrow, etc., then click Check Status to open that specific flight status page.
+  </p>
+
+  <label for="flight">Flight Number:</label>
+  <input type="text" id="flight" inputmode="numeric" placeholder="e.g., 331" required autofocus />
+
+  <div class="checkbox-wrapper">
+    <input type="checkbox" id="remember" />
+    <label for="remember">Remember this flight number</label>
+  </div>
+
+  <label for="offset">Date:</label>
+  <select id="offset">
+    <option value="-3">3 Days ago</option>
+    <option value="-2">2 Days ago</option>
+    <option value="-1">Yesterday</option>
+    <option value="0" selected>Today</option>
+    <option value="1">Tomorrow</option>
+    <option value="2">2 Days from now</option>
+    <option value="3">3 Days from now</option>
+    <option value="4">4 Days from now</option>
+  </select>
+
+  <p id="warningMessage"></p>
+
+  <div id="searchHistory"></div>
+
+  <button onclick="lookupFlight()">Check Status</button>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      initializeFlightInput();
+      displaySearchHistory();
+    });
+
+    function initializeFlightInput() {
+      const savedFlight = localStorage.getItem('savedFlight');
+      const flightInput = document.getElementById('flight');
+      const rememberBox = document.getElementById('remember');
+      const offsetSelect = document.getElementById('offset');
+      const warningMessage = document.getElementById('warningMessage');
+
+      if (savedFlight) {
+        flightInput.value = savedFlight;
+        rememberBox.checked = true;
+      }
+
+      rememberBox.addEventListener('change', () => {
+        if (!rememberBox.checked) {
+          localStorage.removeItem('savedFlight');
+          flightInput.value = '';
+        }
+      });
+
+      offsetSelect.addEventListener('change', updateWarningMessage);
+
+      updateWarningMessage();
+
+      function updateWarningMessage() {
+        const offset = parseInt(offsetSelect.value);
+        if (offset === 4) {
+          const now = new Date();
+          const futureDate = new Date(now);
+          futureDate.setDate(now.getDate() + 4);
+          const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+          const timeOptions = { hour: 'numeric', minute: '2-digit', hour12: true };
+          const formattedDate = futureDate.toLocaleDateString(undefined, dateOptions);
+          const formattedTime = now.toLocaleTimeString(undefined, timeOptions);
+          warningMessage.textContent = `Flight status pages for ${formattedDate} departing after ${formattedTime} may not yet be available.`;
+          warningMessage.style.display = 'block';
+        } else {
+          warningMessage.style.display = 'none';
+          warningMessage.textContent = '';
+        }
+      }
+    }
+
+    function displaySearchHistory() {
+      const searchHistoryDiv = document.getElementById('searchHistory');
+      searchHistoryDiv.innerHTML = '';
+      const searches = JSON.parse(localStorage.getItem('searches') || '[]');
+
+      searches.forEach(search => {
+        const [flight, offset] = search.split('|');
+        const badge = createSearchBadge(flight, offset, searches);
+        searchHistoryDiv.appendChild(badge);
+      });
+    }
+
+    function createSearchBadge(flight, offset, searches) {
+      const badge = document.createElement('span');
+      const offsetText = offset == 0 ? 'today' : (offset > 0 ? `+${offset} days` : `${offset} days`);
+      badge.textContent = `AS ${flight}, ${offsetText}`;
+      badge.classList.add('badge');
+
+      const deleteBtn = createDeleteButton(flight, offset, searches, badge);
+      badge.appendChild(deleteBtn);
+
+      badge.addEventListener('click', () => {
+        navigateToFlightStatus(flight, offset);
+      });
+
+      return badge;
+    }
+
+    function createDeleteButton(flight, offset, searches, badge) {
+      const deleteBtn = document.createElement('span');
+      deleteBtn.textContent = 'x';
+      deleteBtn.classList.add('delete-btn');
+
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        /*const updatedSearches = searches.filter(s => s !== `${flight}|${offset}`);*/
+        const existingSearches = JSON.parse(localStorage.getItem('searches') || '[]');
+        const updatedSearches = existingSearches.filter(s => s !== `${flight}|${offset}`);
+
+        localStorage.setItem('searches', JSON.stringify(updatedSearches));
+        badge.remove();
+      });
+
+      return deleteBtn;
+    }
+
+    function navigateToFlightStatus(flight, offset) {
+      const date = new Date();
+      date.setDate(date.getDate() + parseInt(offset));
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day}`;
+      const url = `https://www.alaskaair.com/status/${flight}/${formattedDate}`;
+      window.location.href = url;
+    }
+
+    function lookupFlight() {
+      const flightInput = document.getElementById("flight");
+      const flight = flightInput.value.trim();
+      const offset = parseInt(document.getElementById("offset").value);
+      const remember = document.getElementById("remember").checked;
+
+      if (!/^\d+$/.test(flight) || !( (flight >= 0 && flight <= 3500) || (flight >= 9000 && flight <= 9999) )) {
+        alert("Please enter a valid flight number (0-3500 or 9000-9999).");
+        return;
+      }
+
+      if (remember) {
+        localStorage.setItem('savedFlight', flight);
+      } else {
+        localStorage.removeItem('savedFlight');
+      }
+
+      const searchTerm = `${flight}|${offset}`;
+      let existingSearches = JSON.parse(localStorage.getItem('searches') || '[]');
+
+      if (!existingSearches.includes(searchTerm)) {
+        existingSearches.push(searchTerm);
+        if (existingSearches.length > 5) {
+          existingSearches.shift();
+        }
+        localStorage.setItem('searches', JSON.stringify(existingSearches));
+      }
+
+      navigateToFlightStatus(flight, offset);
+    }
+    
+    window.addEventListener('pageshow', function (event) {
+  if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
+    // Re-run anything that should update the display
+    const searchHistoryDiv = document.getElementById('searchHistory');
+    searchHistoryDiv.innerHTML = ''; // Clear previous badges
+    displaySearchHistory();          // Rebuild them
+  }
+});
+
+  </script>
+
+  <div style="text-align:center; font-size:0.85em; color:gray; margin-top:1em;">
+    <p>
+      This tool is unofficial and not affiliated with Alaska Airlines. Always confirm flight details at
+      <a href="https://www.alaskaair.com/" target="_blank" rel="noopener noreferrer">alaskaair.com</a>.
+    </p>
+    <p>
+      View the source code on
+      <a href="https://github.com/heykid6063/Alaska-Flight-Status" target="_blank" rel="noopener noreferrer">
+        GitHub
+      </a>.
+    </p>
+  </div>
+
+  <p id="lastUpdated"></p>
+
+  <script>
+    const lastModified = new Date(document.lastModified);
+    const options = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    };
+    const formatted = lastModified.toLocaleString(undefined, options);
+    document.getElementById('lastUpdated').textContent = "Page design last updated on: " + formatted;
+  </script>
+</body>
+</html>
