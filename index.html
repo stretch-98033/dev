@@ -331,81 +331,94 @@
       });
     }
 
-    function createSearchBadge(flight, offset, searches) {
-      const badge = document.createElement('span');
-      const offsetText = offset == 0 ? 'today' : (offset > 0 ? `+${offset} days` : `${offset} days`);
-      badge.textContent = `AS ${flight}, ${offsetText}`;
-      badge.classList.add('badge');
+function createSearchBadge(flight, dateString, searches) {
+  const badge = document.createElement('span');
+  const today = new Date();
+  const targetDate = new Date(dateString);
+  const timeDiff = targetDate.setHours(0, 0, 0, 0) - today.setHours(0, 0, 0, 0);
+  const offset = Math.round(timeDiff / (1000 * 60 * 60 * 24));
 
-      const deleteBtn = createDeleteButton(flight, offset, searches, badge);
-      badge.appendChild(deleteBtn);
+  const offsetText = offset === 0
+    ? 'today'
+    : offset > 0
+      ? `in ${offset} day${offset === 1 ? '' : 's'}`
+      : `${Math.abs(offset)} day${Math.abs(offset) === 1 ? '' : 's'} ago`;
 
-      badge.addEventListener('click', () => {
-        navigateToFlightStatus(flight, offset);
-      });
+  badge.textContent = `AS ${flight}, ${offsetText}`;
+  badge.classList.add('badge');
 
-      return badge;
+  const deleteBtn = createDeleteButton(flight, dateString, searches, badge);
+  badge.appendChild(deleteBtn);
+
+  badge.addEventListener('click', () => {
+    navigateToFlightStatus(flight, dateString);
+  });
+
+  return badge;
+}
+
+
+function createDeleteButton(flight, dateString, searches, badge) {
+  const deleteBtn = document.createElement('span');
+  deleteBtn.textContent = 'x';
+  deleteBtn.classList.add('delete-btn');
+
+  deleteBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const existingSearches = JSON.parse(localStorage.getItem('searches') || '[]');
+    const updatedSearches = existingSearches.filter(s => s !== `${flight}|${dateString}`);
+    localStorage.setItem('searches', JSON.stringify(updatedSearches));
+    badge.remove();
+  });
+
+  return deleteBtn;
+}
+
+
+function navigateToFlightStatus(flight, dateString) {
+  const url = `https://www.alaskaair.com/status/${flight}/${dateString}`;
+  window.location.href = url;
+}
+
+
+function lookupFlight() {
+  const flightInput = document.getElementById("flight");
+  const flight = flightInput.value.trim();
+  const offset = parseInt(document.getElementById("offset").value);
+  const remember = document.getElementById("remember").checked;
+
+  if (!/^\d+$/.test(flight) || !((flight >= 0 && flight <= 3500) || (flight >= 9000 && flight <= 9999))) {
+    alert("Please enter a valid flight number (0-3500 or 9000-9999).");
+    return;
+  }
+
+  if (remember) {
+    localStorage.setItem('savedFlight', flight);
+  } else {
+    localStorage.removeItem('savedFlight');
+  }
+
+  const date = new Date();
+  date.setDate(date.getDate() + offset);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const formattedDate = `${year}-${month}-${day}`;
+
+  const searchTerm = `${flight}|${formattedDate}`;
+  let existingSearches = JSON.parse(localStorage.getItem('searches') || '[]');
+
+  if (!existingSearches.includes(searchTerm)) {
+    existingSearches.push(searchTerm);
+    if (existingSearches.length > 5) {
+      existingSearches.shift();
     }
+    localStorage.setItem('searches', JSON.stringify(existingSearches));
+  }
 
-    function createDeleteButton(flight, offset, searches, badge) {
-      const deleteBtn = document.createElement('span');
-      deleteBtn.textContent = 'x';
-      deleteBtn.classList.add('delete-btn');
+  navigateToFlightStatus(flight, formattedDate);
+}
 
-      deleteBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        /*const updatedSearches = searches.filter(s => s !== `${flight}|${offset}`);*/
-        const existingSearches = JSON.parse(localStorage.getItem('searches') || '[]');
-        const updatedSearches = existingSearches.filter(s => s !== `${flight}|${offset}`);
-
-        localStorage.setItem('searches', JSON.stringify(updatedSearches));
-        badge.remove();
-      });
-
-      return deleteBtn;
-    }
-
-    function navigateToFlightStatus(flight, offset) {
-      const date = new Date();
-      date.setDate(date.getDate() + parseInt(offset));
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const formattedDate = `${year}-${month}-${day}`;
-      const url = `https://www.alaskaair.com/status/${flight}/${formattedDate}`;
-      window.location.href = url;
-    }
-
-    function lookupFlight() {
-      const flightInput = document.getElementById("flight");
-      const flight = flightInput.value.trim();
-      const offset = parseInt(document.getElementById("offset").value);
-      const remember = document.getElementById("remember").checked;
-
-      if (!/^\d+$/.test(flight) || !( (flight >= 0 && flight <= 3500) || (flight >= 9000 && flight <= 9999) )) {
-        alert("Please enter a valid flight number (0-3500 or 9000-9999).");
-        return;
-      }
-
-      if (remember) {
-        localStorage.setItem('savedFlight', flight);
-      } else {
-        localStorage.removeItem('savedFlight');
-      }
-
-      const searchTerm = `${flight}|${offset}`;
-      let existingSearches = JSON.parse(localStorage.getItem('searches') || '[]');
-
-      if (!existingSearches.includes(searchTerm)) {
-        existingSearches.push(searchTerm);
-        if (existingSearches.length > 5) {
-          existingSearches.shift();
-        }
-        localStorage.setItem('searches', JSON.stringify(existingSearches));
-      }
-
-      navigateToFlightStatus(flight, offset);
-    }
     
     window.addEventListener('pageshow', function (event) {
   if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
