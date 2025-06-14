@@ -319,17 +319,34 @@
       }
     }
 
-    function displaySearchHistory() {
-      const searchHistoryDiv = document.getElementById('searchHistory');
-      searchHistoryDiv.innerHTML = '';
-      const searches = JSON.parse(localStorage.getItem('searches') || '[]');
+function displaySearchHistory() {
+  const searchHistoryDiv = document.getElementById('searchHistory');
+  searchHistoryDiv.innerHTML = '';
+  const allSearches = JSON.parse(localStorage.getItem('searches') || '[]');
 
-      searches.forEach(search => {
-        const [flight, offset] = search.split('|');
-        const badge = createSearchBadge(flight, offset, searches);
-        searchHistoryDiv.appendChild(badge);
-      });
-    }
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const validSearches = allSearches.filter(entry => {
+    const [flight, dateString] = entry.split('|');
+    const [year, month, day] = dateString.split('-').map(Number);
+    const searchDate = new Date(year, month - 1, day);
+    searchDate.setHours(0, 0, 0, 0);
+
+    const diffDays = Math.round((searchDate - today) / (1000 * 60 * 60 * 24));
+    return diffDays >= -3; // Keep if within last 3 days
+  });
+
+  // Save the filtered list back to localStorage
+  localStorage.setItem('searches', JSON.stringify(validSearches));
+
+  validSearches.forEach(search => {
+    const [flight, dateString] = search.split('|');
+    const badge = createSearchBadge(flight, dateString, validSearches);
+    searchHistoryDiv.appendChild(badge);
+  });
+}
+
 
 function createSearchBadge(flight, dateString, searches) {
   const badge = document.createElement('span');
