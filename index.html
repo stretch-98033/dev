@@ -283,7 +283,7 @@
   function forceToday() {
     // Set a fake "today" for testing logic
     // Example: Uncomment the line below to force the date used
-    return new Date('2025-06-14'); 
+    return new Date('2025-06-16'); 
 
     //uncomment the line below to use the real date
     //return new Date(); // use real current date
@@ -360,38 +360,45 @@
   }
 
   function createSearchBadge(flight, dateString, searches) {
-    const badge = document.createElement('span');
-    const today = forceToday();
-    today.setHours(0, 0, 0, 0);
+  const badge = document.createElement('span');
+  const today = forceToday();
+  today.setHours(0, 0, 0, 0);
 
-    const [year, month, day] = dateString.split('-').map(Number);
-    const targetDate = new Date(year, month - 1, day);
-    targetDate.setHours(0, 0, 0, 0);
+  const [year, month, day] = dateString.split('-').map(Number);
+  const targetDate = new Date(year, month - 1, day);
+  targetDate.setHours(0, 0, 0, 0);
 
-    const offset = Math.round((targetDate - today) / (1000 * 60 * 60 * 24));
+  const offset = Math.round((targetDate - today) / (1000 * 60 * 60 * 24));
 
-    // ⛔ Auto-remove if older than 3 days ago
-    if (offset < -3) return document.createElement('span'); // Do not display
+  // ⛔ Auto-remove if older than 3 days ago
+  if (offset < -3) return document.createElement('span'); // Do not display
 
-    const offsetText =
-      offset === 0
-        ? 'today'
-        : offset > 0
-        ? `in ${offset} day${offset === 1 ? '' : 's'}`
-        : `${Math.abs(offset)} day${Math.abs(offset) === 1 ? '' : 's'} ago`;
+  const offsetText =
+    offset === 0
+      ? 'today'
+      : offset > 0
+      ? `in ${offset} day${offset === 1 ? '' : 's'}`
+      : `${Math.abs(offset)} day${Math.abs(offset) === 1 ? '' : 's'} ago`;
 
-    badge.textContent = `AS ${flight}, ${offsetText}`;
-    badge.classList.add('badge');
+  badge.textContent = `AS ${flight}, ${offsetText}`;
+  badge.classList.add('badge');
 
-    const deleteBtn = createDeleteButton(flight, dateString, searches, badge);
-    badge.appendChild(deleteBtn);
+  // 🆕 Store data attributes to retrieve later
+  badge.dataset.flight = flight;
+  badge.dataset.date = dateString;
 
-    badge.addEventListener('click', () => {
-      navigateToFlightStatus(flight, dateString);
-    });
+  const deleteBtn = createDeleteButton(flight, dateString, searches, badge);
+  badge.appendChild(deleteBtn);
 
-    return badge;
-  }
+  badge.addEventListener('click', () => {
+    const flightNumber = badge.dataset.flight;
+    const date = badge.dataset.date;
+    navigateToFlightStatus(flightNumber, date); // ✅ Use original date
+  });
+
+  return badge;
+}
+
 
   function createDeleteButton(flight, dateString, searches, badge) {
     const deleteBtn = document.createElement('span');
