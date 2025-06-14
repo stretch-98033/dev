@@ -549,7 +549,7 @@
     const [year, month, day] = dateString.split('-').map(Number);
     const flightDate = new Date(year, month - 1, day);
     const dateStr = flightDate.toISOString().split('T')[0];
-    const url = `https://www.alaskaair.com/flightstatus/${flight}/${dateStr}`;
+    const url = `https://www.alaskaair.com/status/${flight}/${dateStr}`;
     window.location.href = url;
   }
 
