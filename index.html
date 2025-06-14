@@ -471,21 +471,33 @@
     return badge;
   }
 
-  function toggleFavorite(flight, favBtn) {
-    let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-    const index = favorites.indexOf(flight);
+function toggleFavorite(flight, favBtn) {
+  let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+  const index = favorites.indexOf(flight);
 
-    if (index === -1) {
-      favorites.push(flight);
-      favBtn.classList.remove('inactive');
-    } else {
-      favorites.splice(index, 1);
-      favBtn.classList.add('inactive');
-    }
-
-    localStorage.setItem('favorites', JSON.stringify(favorites));
-    displayFavorites();
+  if (index === -1) {
+    favorites.push(flight);
+  } else {
+    favorites.splice(index, 1);
   }
+
+  localStorage.setItem('favorites', JSON.stringify(favorites));
+
+  // Update all visible favorite buttons with this flight number
+  document.querySelectorAll('.favorite-btn').forEach(btn => {
+    const badge = btn.closest('.badge');
+    if (badge?.dataset.flight === flight) {
+      if (favorites.includes(flight)) {
+        btn.classList.remove('inactive');
+      } else {
+        btn.classList.add('inactive');
+      }
+    }
+  });
+
+  displayFavorites();
+}
+
 
   function displayFavorites() {
     const favoritesDiv = document.getElementById('favoritesList');
