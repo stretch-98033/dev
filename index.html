@@ -249,6 +249,7 @@
       cursor: pointer;
       font-weight: bold;
       font-size: 1.2em;
+      margin-left: 8px
       user-select: none;
       color: gold;
       text-shadow: 0 0 2px #c4a300;
@@ -256,6 +257,11 @@
       position: absolute;
       top: -6px;
       left: 2px;
+    }
+
+    .favorite-btn:not(.inactive) {
+    color: #ffc107; /* Gold */
+    text-shadow: 0 0 2px rgba(0,0,0,0.4); /* adds contrast on light bg */
     }
 
     .favorite-btn.inactive {
@@ -477,22 +483,24 @@
     return badge;
   }
 
-function toggleFavorite(flight, favBtn) {
+function toggleFavorite(flight, dateString, clickedBtn) {
   let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-  const index = favorites.indexOf(flight);
+  const key = `${flight}`;
+  const index = favorites.indexOf(key);
 
   if (index === -1) {
-    favorites.push(flight);
+    favorites.push(key);
   } else {
     favorites.splice(index, 1);
   }
 
   localStorage.setItem('favorites', JSON.stringify(favorites));
+  displayFavorites();
 
-  // Update all visible favorite buttons with this flight number
-  document.querySelectorAll('.favorite-btn').forEach(btn => {
+  // Update all favorite buttons for this flight
+  document.querySelectorAll(`.favorite-btn`).forEach(btn => {
     const badge = btn.closest('.badge');
-    if (badge?.dataset.flight === flight) {
+    if (badge && badge.dataset.flight === flight) {
       if (favorites.includes(flight)) {
         btn.classList.remove('inactive');
       } else {
@@ -500,8 +508,6 @@ function toggleFavorite(flight, favBtn) {
       }
     }
   });
-
-  displayFavorites();
 }
 
 
