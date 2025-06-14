@@ -333,9 +333,14 @@
 
 function createSearchBadge(flight, dateString, searches) {
   const badge = document.createElement('span');
+
   const today = new Date();
-  const targetDate = new Date(dateString);
-  const timeDiff = targetDate.setHours(0, 0, 0, 0) - today.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+
+  const [year, month, day] = dateString.split('-').map(Number);
+  const targetDate = new Date(year, month - 1, day); // safe from TZ issues
+
+  const timeDiff = targetDate - today;
   const offset = Math.round(timeDiff / (1000 * 60 * 60 * 24));
 
   const offsetText = offset === 0
@@ -356,6 +361,7 @@ function createSearchBadge(flight, dateString, searches) {
 
   return badge;
 }
+
 
 
 
