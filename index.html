@@ -52,10 +52,7 @@
       background-image:
         linear-gradient(var(--input-bg), var(--input-bg)),
         var(--gradient);
-}
-
-
-
+    }
 
     h2 {
       text-align: center;
@@ -121,7 +118,7 @@
       transform: scale(1.05);
     }
 
-        .favorite {
+    .favorite {
       flex: 1 1 18%;
       max-width: 90px;
       min-width: 60px;
@@ -142,13 +139,14 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
+      gap: 6px;
     }
 
-      .favorite:hover {
-        transform: scale(1.05);
-        box-shadow: 0 0 12px rgba(230, 194, 0, 0.5);
-      }
-
+    .favorite:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 12px rgba(230, 194, 0, 0.5);
+    }
 
     .checkbox-wrapper {
       display: flex;
@@ -170,7 +168,7 @@
       cursor: pointer;
     }
 
-    #searchHistory {
+    #searchHistory, #favoritesList {
       display: flex;
       gap: 12px;
       flex-wrap: wrap-reverse;
@@ -202,6 +200,7 @@
       font-weight: 500;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
       user-select: none;
+      gap: 6px;
     }
 
     .badge:hover {
@@ -224,6 +223,26 @@
 
     .delete-btn:hover {
       color: #ff0000;
+    }
+
+    .favorite-btn {
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1.2em;
+      user-select: none;
+      color: gold;
+      text-shadow: 0 0 2px #c4a300;
+      transition: color 0.3s ease;
+    }
+
+    .favorite-btn.inactive {
+      color: gray;
+      text-shadow: none;
+    }
+
+    .favorite-btn:hover {
+      color: #ffdd00;
+      text-shadow: 0 0 6px #ffdd00;
     }
 
     #warningMessage {
@@ -296,199 +315,314 @@
 
   <p id="warningMessage"></p>
 
-  <div id="searchHistory"></div>
+  <div id="favoritesSection" style="margin-bottom: 1em;">
+    <h3 style="text-align:center; user-select:none;">Favorites</h3>
+    <div id="favoritesList"></div>
+  </div>
+
+  <div id="searchHistorySection" style="margin-bottom: 1em;">
+    <h3 style="text-align:center; user-select:none;">Recent Searches</h3>
+    <div id="searchHistory"></div>
+  </div>
 
   <button onclick="lookupFlight()">Check Status</button>
 
-  <!-- [Keep everything in your <head> and <style> block unchanged] -->
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      initializeFlightInput();
+      displaySearchHistory();
+      displayFavorites();
+    });
 
-<script>
-  window.addEventListener("DOMContentLoaded", () => {
-    initializeFlightInput();
-    displaySearchHistory();
-  });
-
-  // 🔧 FORCE TODAY (for testing)
-  function forceToday() {
-    //const testDate = new Date('2025-06-17'); // for testing
-    const testDate = new Date(); // for production
-    testDate.setHours(0, 0, 0, 0);
-    return testDate;
-  }
-
-  function initializeFlightInput() {
-    const savedFlight = localStorage.getItem('savedFlight');
-    const flightInput = document.getElementById('flight');
-    const rememberBox = document.getElementById('remember');
-    const offsetSelect = document.getElementById('offset');
-    const warningMessage = document.getElementById('warningMessage');
-
-    if (savedFlight) {
-      flightInput.value = savedFlight;
-      rememberBox.checked = true;
+    // 🔧 FORCE TODAY (for testing)
+    function forceToday() {
+      //const testDate = new Date('2025-06-17'); // for testing
+      const testDate = new Date(); // for production
+      testDate.setHours(0, 0, 0, 0);
+      return testDate;
     }
 
-    rememberBox.addEventListener('change', () => {
-      if (!rememberBox.checked) {
-        localStorage.removeItem('savedFlight');
-        flightInput.value = '';
+    function initializeFlightInput() {
+      const savedFlight = localStorage.getItem('savedFlight');
+      const flightInput = document.getElementById('flight');
+      const rememberBox = document.getElementById('remember');
+      const offsetSelect = document.getElementById('offset');
+      const warningMessage = document.getElementById('warningMessage');
+
+      if (savedFlight) {
+        flightInput.value = savedFlight;
+        rememberBox.checked = true;
       }
-    });
 
-    offsetSelect.addEventListener('change', updateWarningMessage);
+      rememberBox.addEventListener('change', () => {
+        if (!rememberBox.checked) {
+          localStorage.removeItem('savedFlight');
+          flightInput.value = '';
+        }
+      });
 
-    updateWarningMessage();
+      offsetSelect.addEventListener('change', updateWarningMessage);
 
-    function updateWarningMessage() {
-      const offset = parseInt(offsetSelect.value);
-      const now = forceToday();
-      const futureDate = new Date(now);
-      futureDate.setDate(now.getDate() + offset);
-      const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-      const timeOptions = { hour: 'numeric', minute: '2-digit', hour12: true };
-      const formattedDate = futureDate.toLocaleDateString(undefined, dateOptions);
-      const formattedTime = now.toLocaleTimeString(undefined, timeOptions);
+      updateWarningMessage();
 
-      if (offset === 4) {
-        warningMessage.textContent = `Flight status pages for ${formattedDate} departing after ${formattedTime} may not yet be available.`;
-        warningMessage.style.display = 'block';
-      } else {
-        warningMessage.style.display = 'none';
-        warningMessage.textContent = '';
+      function updateWarningMessage() {
+        const offset = parseInt(offsetSelect.value);
+        const now = forceToday();
+        const futureDate = new Date(now);
+        futureDate.setDate(now.getDate() + offset);
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const timeOptions = { hour: 'numeric', minute: '2-digit', hour12: true };
+        const formattedDate = futureDate.toLocaleDateString(undefined, dateOptions);
+        const formattedTime = now.toLocaleTimeString(undefined, timeOptions);
+
+        if (offset === 4) {
+          warningMessage.textContent = `Flight status pages for ${formattedDate} departing after ${formattedTime} may not yet be available.`;
+          warningMessage.style.display = 'block';
+        } else {
+          warningMessage.style.display = 'none';
+          warningMessage.textContent = '';
+        }
       }
     }
-  }
 
-  function displaySearchHistory() {
-    const searchHistoryDiv = document.getElementById('searchHistory');
-    searchHistoryDiv.innerHTML = '';
-    const allSearches = JSON.parse(localStorage.getItem('searches') || '[]');
+    // SEARCH HISTORY MANAGEMENT
 
-    const today = forceToday();
-
-    // Auto-cleanup: remove entries older than 3 days ago
-    const validSearches = allSearches.filter(entry => {
-      const [_, dateString] = entry.split('|');
-      const [year, month, day] = dateString.split('-').map(Number);
-      const entryDate = new Date(year, month - 1, day);
-      entryDate.setHours(0, 0, 0, 0);
-      const diff = Math.round((entryDate - today) / (1000 * 60 * 60 * 24));
-      return diff >= -3;
-    });
-
-    localStorage.setItem('searches', JSON.stringify(validSearches));
-
-    validSearches.forEach(search => {
-      const [flight, dateString] = search.split('|');
-      const badge = createSearchBadge(flight, dateString, validSearches);
-      searchHistoryDiv.appendChild(badge);
-    });
-  }
-
-  function createSearchBadge(flight, dateString, searches) {
-    const badge = document.createElement('span');
-    const today = forceToday();
-
-    const [year, month, day] = dateString.split('-').map(Number);
-    const targetDate = new Date(year, month - 1, day);
-    targetDate.setHours(0, 0, 0, 0);
-
-    const offset = Math.round((targetDate - today) / (1000 * 60 * 60 * 24));
-
-    if (offset < -3) return document.createElement('span');
-
-    const offsetText =
-      offset === 0
-        ? 'today'
-        : offset > 0
-        ? `in ${offset} day${offset === 1 ? '' : 's'}`
-        : `${Math.abs(offset)} day${Math.abs(offset) === 1 ? '' : 's'} ago`;
-
-    badge.textContent = `AS ${flight}, ${offsetText}`;
-    badge.classList.add('badge');
-    badge.dataset.flight = flight;
-    badge.dataset.date = dateString;
-
-    const deleteBtn = createDeleteButton(flight, dateString, searches, badge);
-    badge.appendChild(deleteBtn);
-
-    badge.addEventListener('click', () => {
-      const flightNumber = badge.dataset.flight;
-      const date = badge.dataset.date;
-      navigateToFlightStatus(flightNumber, date);
-    });
-
-    return badge;
-  }
-
-  function createDeleteButton(flight, dateString, searches, badge) {
-    const deleteBtn = document.createElement('span');
-    deleteBtn.textContent = 'x';
-    deleteBtn.classList.add('delete-btn');
-
-    deleteBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const existingSearches = JSON.parse(localStorage.getItem('searches') || '[]');
-      const updatedSearches = existingSearches.filter(s => s !== `${flight}|${dateString}`);
-      localStorage.setItem('searches', JSON.stringify(updatedSearches));
-      badge.remove();
-    });
-
-    return deleteBtn;
-  }
-
-  function navigateToFlightStatus(flight, dateString) {
-    const url = `https://www.alaskaair.com/status/${flight}/${dateString}`;
-    window.location.href = url;
-  }
-
-  function lookupFlight() {
-    const flightInput = document.getElementById("flight");
-    const flight = flightInput.value.trim();
-    const offset = parseInt(document.getElementById("offset").value);
-    const remember = document.getElementById("remember").checked;
-
-    if (!/^\d+$/.test(flight) || !((flight >= 0 && flight <= 3500) || (flight >= 9000 && flight <= 9999))) {
-      alert("Please enter a valid flight number (0-3500 or 9000-9999).");
-      return;
-    }
-
-    if (remember) {
-      localStorage.setItem('savedFlight', flight);
-    } else {
-      localStorage.removeItem('savedFlight');
-    }
-
-    const date = forceToday();
-    date.setDate(date.getDate() + offset);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const formattedDate = `${year}-${month}-${day}`;
-
-    const searchTerm = `${flight}|${formattedDate}`;
-    let existingSearches = JSON.parse(localStorage.getItem('searches') || '[]');
-
-    if (!existingSearches.includes(searchTerm)) {
-      existingSearches.push(searchTerm);
-      if (existingSearches.length > 10) {
-        existingSearches.shift();
-      }
-      localStorage.setItem('searches', JSON.stringify(existingSearches));
-    }
-
-    navigateToFlightStatus(flight, formattedDate);
-  }
-
-  window.addEventListener('pageshow', function (event) {
-    if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
+    function displaySearchHistory() {
       const searchHistoryDiv = document.getElementById('searchHistory');
       searchHistoryDiv.innerHTML = '';
+      const allSearches = JSON.parse(localStorage.getItem('searches') || '[]');
+
+      const today = forceToday();
+
+      // Auto-cleanup: remove entries older than 3 days ago
+      const validSearches = allSearches.filter(entry => {
+        const [_, dateString] = entry.split('|');
+        const [year, month, day] = dateString.split('-').map(Number);
+        const entryDate = new Date(year, month - 1, day);
+        entryDate.setHours(0, 0, 0, 0);
+        const diff = Math.round((entryDate - today) / (1000 * 60 * 60 * 24));
+        return diff >= -3;
+      });
+
+      localStorage.setItem('searches', JSON.stringify(validSearches));
+
+      validSearches.forEach(search => {
+        const [flight, dateString] = search.split('|');
+        const badge = createSearchBadge(flight, dateString, validSearches);
+        searchHistoryDiv.appendChild(badge);
+      });
+    }
+
+    function createSearchBadge(flight, dateString, searches) {
+      const badge = document.createElement('span');
+      const today = forceToday();
+
+      const [year, month, day] = dateString.split('-').map(Number);
+      const targetDate = new Date(year, month - 1, day);
+      targetDate.setHours(0, 0, 0, 0);
+
+      const offset = Math.round((targetDate - today) / (1000 * 60 * 60 * 24));
+
+      if (offset < -3) return document.createElement('span');
+
+      const offsetText =
+        offset === 0
+          ? 'today'
+          : offset > 0
+          ? `in ${offset} day${offset === 1 ? '' : 's'}`
+          : `${Math.abs(offset)} day${Math.abs(offset) === 1 ? '' : 's'} ago`;
+
+      badge.textContent = `AS ${flight}, ${offsetText}`;
+      badge.classList.add('badge');
+      badge.dataset.flight = flight;
+      badge.dataset.date = dateString;
+
+      // Favorite button (star)
+      const favBtn = document.createElement('span');
+      favBtn.classList.add('favorite-btn');
+      favBtn.innerHTML = '★';
+
+      // Check if favorite
+      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      const isFav = favorites.includes(`${flight}|${dateString}`);
+      if (!isFav) {
+        favBtn.classList.add('inactive');
+      }
+
+      favBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFavorite(flight, dateString, favBtn);
+      });
+
+      badge.appendChild(favBtn);
+
+      const deleteBtn = createDeleteButton(flight, dateString, searches, badge);
+      badge.appendChild(deleteBtn);
+
+      badge.addEventListener('click', () => {
+        navigateToFlightStatus(flight, dateString);
+      });
+
+      return badge;
+    }
+
+    function toggleFavorite(flight, dateString, favBtn) {
+      let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      const key = `${flight}|${dateString}`;
+      const index = favorites.indexOf(key);
+
+      if (index === -1) {
+        favorites.push(key);
+        favBtn.classList.remove('inactive');
+      } else {
+        favorites.splice(index, 1);
+        favBtn.classList.add('inactive');
+      }
+
+      localStorage.setItem('favorites', JSON.stringify(favorites));
+      displayFavorites();
+    }
+
+    // FAVORITES DISPLAY
+
+    function displayFavorites() {
+      const favoritesDiv = document.getElementById('favoritesList');
+      favoritesDiv.innerHTML = '';
+      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      const today = forceToday();
+
+      favorites.forEach(fav => {
+        const [flight, dateString] = fav.split('|');
+        const [year, month, day] = dateString.split('-').map(Number);
+        const targetDate = new Date(year, month - 1, day);
+        targetDate.setHours(0, 0, 0, 0);
+
+        const offset = Math.round((targetDate - today) / (1000 * 60 * 60 * 24));
+        if (offset < -3) return; // Skip old
+
+        const offsetText =
+          offset === 0
+            ? 'today'
+            : offset > 0
+            ? `in ${offset} day${offset === 1 ? '' : 's'}`
+            : `${Math.abs(offset)} day${Math.abs(offset) === 1 ? '' : 's'} ago`;
+
+        const favBadge = document.createElement('span');
+        favBadge.textContent = `AS ${flight}, ${offsetText}`;
+        favBadge.classList.add('favorite');
+        favBadge.dataset.flight = flight;
+        favBadge.dataset.date = dateString;
+
+        // Remove favorite button for favorites list — instead add remove button
+        const removeBtn = document.createElement('span');
+        removeBtn.textContent = '✕';
+        removeBtn.classList.add('delete-btn');
+        removeBtn.title = 'Remove from favorites';
+        removeBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          removeFromFavorites(flight, dateString);
+        });
+        favBadge.appendChild(removeBtn);
+
+        favBadge.addEventListener('click', () => {
+          navigateToFlightStatus(flight, dateString);
+        });
+
+        favoritesDiv.appendChild(favBadge);
+      });
+    }
+
+    function removeFromFavorites(flight, dateString) {
+      let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+      const key = `${flight}|${dateString}`;
+      favorites = favorites.filter(f => f !== key);
+      localStorage.setItem('favorites', JSON.stringify(favorites));
+      displayFavorites();
+      // Also update search badges favorite star states
       displaySearchHistory();
     }
-  });
-</script>
 
+    function createDeleteButton(flight, dateString, searches, badge) {
+      const deleteBtn = document.createElement('span');
+      deleteBtn.textContent = '✕';
+      deleteBtn.classList.add('delete-btn');
+      deleteBtn.title = 'Delete from search history';
+
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const index = searches.indexOf(`${flight}|${dateString}`);
+        if (index > -1) {
+          searches.splice(index, 1);
+          localStorage.setItem('searches', JSON.stringify(searches));
+          displaySearchHistory();
+          // Also remove from favorites if present
+          removeFromFavorites(flight, dateString);
+        }
+      });
+
+      return deleteBtn;
+    }
+
+    // NAVIGATION
+
+    function navigateToFlightStatus(flight, dateString) {
+      const [year, month, day] = dateString.split('-').map(Number);
+      const flightDate = new Date(year, month - 1, day);
+      const dateStr = flightDate.toISOString().split('T')[0]; // yyyy-mm-dd
+
+      // Construct URL (example pattern, update as necessary)
+      // e.g. https://www.alaskaair.com/flightstatus/{flight}/{date}
+      const url = `https://www.alaskaair.com/flightstatus?flightNumber=${flight}&date=${dateStr}`;
+
+      window.open(url, '_blank');
+    }
+
+    // LOOKUP FLIGHT BUTTON
+
+    function lookupFlight() {
+      const flightInput = document.getElementById('flight');
+      const offsetSelect = document.getElementById('offset');
+      const rememberBox = document.getElementById('remember');
+      const flightNumber = flightInput.value.trim();
+      if (!flightNumber.match(/^\d+$/)) {
+        alert('Please enter a valid flight number (numbers only).');
+        flightInput.focus();
+        return;
+      }
+
+      const offset = parseInt(offsetSelect.value);
+      const today = forceToday();
+      const targetDate = new Date(today);
+      targetDate.setDate(today.getDate() + offset);
+      const yyyy = targetDate.getFullYear();
+      const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
+      const dd = String(targetDate.getDate()).padStart(2, '0');
+      const dateString = `${yyyy}-${mm}-${dd}`;
+
+      // Save flight to localStorage if remember checked
+      if (rememberBox.checked) {
+        localStorage.setItem('savedFlight', flightNumber);
+      } else {
+        localStorage.removeItem('savedFlight');
+      }
+
+      // Save to searches (avoid duplicates)
+      let searches = JSON.parse(localStorage.getItem('searches') || '[]');
+      const key = `${flightNumber}|${dateString}`;
+      if (!searches.includes(key)) {
+        searches.unshift(key);
+        if (searches.length > 20) {
+          searches.pop();
+        }
+        localStorage.setItem('searches', JSON.stringify(searches));
+      }
+
+      displaySearchHistory();
+
+      // Open flight status page
+      navigateToFlightStatus(flightNumber, dateString);
+    }
+  </script>
 
 
   <div style="text-align:center; font-size:0.85em; color:gray; margin-top:1em;">
