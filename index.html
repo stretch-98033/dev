@@ -525,7 +525,6 @@ function toggleFavorite(flight, dateString, clickedBtn) {
       favBadge.addEventListener('click', () => {
         const input = document.getElementById('flight');
         input.value = flight;
-        input.focus();
       });
 
       const removeBtn = document.createElement('span');
