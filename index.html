@@ -358,6 +358,7 @@ function createSearchBadge(flight, dateString, searches) {
 }
 
 
+
 function createDeleteButton(flight, dateString, searches, badge) {
   const deleteBtn = document.createElement('span');
   deleteBtn.textContent = 'x';
@@ -375,10 +376,12 @@ function createDeleteButton(flight, dateString, searches, badge) {
 }
 
 
+
 function navigateToFlightStatus(flight, dateString) {
   const url = `https://www.alaskaair.com/status/${flight}/${dateString}`;
   window.location.href = url;
 }
+
 
 
 function lookupFlight() {
@@ -418,6 +421,7 @@ function lookupFlight() {
 
   navigateToFlightStatus(flight, formattedDate);
 }
+
 
     
     window.addEventListener('pageshow', function (event) {
