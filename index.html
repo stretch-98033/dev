@@ -129,13 +129,19 @@
       text-align: center;
       cursor: pointer;
       user-select: none;
-      color: #000;
+      color: var(--text-color);
       border: var(--border-width) solid transparent;
-      background:
+      /*background:
         linear-gradient(#f9f6e7, #f9f6e7) padding-box,
-        linear-gradient(45deg, #e6c200, #c4a300) border-box;
+        linear-gradient(45deg, #e6c200, #c4a300) border-box;*/
+      background-color: var(--badge-bg); /* Match .badge background */
+      background-image:
+        linear-gradient(var(--badge-bg), var(--badge-bg)), /* inner background */
+        linear-gradient(45deg, #ffd700, #ffb700, #ffcc33);  /* gold gradient border */
+      background-origin: border-box;
       background-clip: padding-box, border-box;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: background 0.3s ease, color 0.3s ease;
+      /*transition: transform 0.3s ease, box-shadow 0.2s ease;*/
       display: flex;
       align-items: center;
       justify-content: center;
