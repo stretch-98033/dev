@@ -376,7 +376,6 @@
     });
 
     offsetSelect.addEventListener('change', updateWarningMessage);
-
     updateWarningMessage();
 
     function updateWarningMessage() {
@@ -403,7 +402,6 @@
     const searchHistoryDiv = document.getElementById('searchHistory');
     searchHistoryDiv.innerHTML = '';
     const allSearches = JSON.parse(localStorage.getItem('searches') || '[]');
-
     const today = forceToday();
 
     const validSearches = allSearches.filter(entry => {
@@ -427,11 +425,9 @@
   function createSearchBadge(flight, dateString, searches) {
     const badge = document.createElement('span');
     const today = forceToday();
-
     const [year, month, day] = dateString.split('-').map(Number);
     const targetDate = new Date(year, month - 1, day);
     targetDate.setHours(0, 0, 0, 0);
-
     const offset = Math.round((targetDate - today) / (1000 * 60 * 60 * 24));
     if (offset < -3) return document.createElement('span');
 
@@ -452,16 +448,14 @@
     favBtn.innerHTML = '★';
 
     const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-    const isFav = favorites.includes(`${flight}|${dateString}`);
+    const isFav = favorites.includes(flight);
     if (!isFav) {
       favBtn.classList.add('inactive');
     }
 
     favBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      toggleFavorite(flight, dateString, favBtn);
-      const flightInput = document.getElementById('flight');
-      flightInput.value = flight;
+      toggleFavorite(flight, favBtn);
     });
 
     badge.appendChild(favBtn);
@@ -476,13 +470,12 @@
     return badge;
   }
 
-  function toggleFavorite(flight, dateString, favBtn) {
+  function toggleFavorite(flight, favBtn) {
     let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-    const key = `${flight}|${dateString}`;
-    const index = favorites.indexOf(key);
+    const index = favorites.indexOf(flight);
 
     if (index === -1) {
-      favorites.push(key);
+      favorites.push(flight);
       favBtn.classList.remove('inactive');
     } else {
       favorites.splice(index, 1);
@@ -497,29 +490,18 @@
     const favoritesDiv = document.getElementById('favoritesList');
     favoritesDiv.innerHTML = '';
     const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-    const today = forceToday();
 
-    favorites.forEach(fav => {
-      const [flight, dateString] = fav.split('|');
-      const [year, month, day] = dateString.split('-').map(Number);
-      const targetDate = new Date(year, month - 1, day);
-      targetDate.setHours(0, 0, 0, 0);
-
-      const offset = Math.round((targetDate - today) / (1000 * 60 * 60 * 24));
-      if (offset < -3) return;
-
-      const offsetText =
-        offset === 0
-          ? 'today'
-          : offset > 0
-          ? `in ${offset} day${offset === 1 ? '' : 's'}`
-          : `${Math.abs(offset)} day${Math.abs(offset) === 1 ? '' : 's'} ago`;
-
+    favorites.forEach(flight => {
       const favBadge = document.createElement('span');
-      favBadge.textContent = `AS ${flight}, ${offsetText}`;
+      favBadge.textContent = `AS ${flight}`;
       favBadge.classList.add('favorite');
       favBadge.dataset.flight = flight;
-      favBadge.dataset.date = dateString;
+
+      favBadge.addEventListener('click', () => {
+        const input = document.getElementById('flight');
+        input.value = flight;
+        input.focus();
+      });
 
       const removeBtn = document.createElement('span');
       removeBtn.textContent = '✕';
@@ -527,22 +509,17 @@
       removeBtn.title = 'Remove from favorites';
       removeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        removeFromFavorites(flight, dateString);
+        removeFromFavorites(flight);
       });
+
       favBadge.appendChild(removeBtn);
-
-      favBadge.addEventListener('click', () => {
-        navigateToFlightStatus(flight, dateString);
-      });
-
       favoritesDiv.appendChild(favBadge);
     });
   }
 
-  function removeFromFavorites(flight, dateString) {
+  function removeFromFavorites(flight) {
     let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-    const key = `${flight}|${dateString}`;
-    favorites = favorites.filter(f => f !== key);
+    favorites = favorites.filter(f => f !== flight);
     localStorage.setItem('favorites', JSON.stringify(favorites));
     displayFavorites();
     displaySearchHistory();
@@ -561,7 +538,7 @@
         searches.splice(index, 1);
         localStorage.setItem('searches', JSON.stringify(searches));
         displaySearchHistory();
-        removeFromFavorites(flight, dateString);
+        removeFromFavorites(flight); // if present
       }
     });
 
@@ -581,6 +558,7 @@
     const offsetSelect = document.getElementById('offset');
     const rememberBox = document.getElementById('remember');
     const flightNumber = flightInput.value.trim();
+
     if (!flightNumber.match(/^\d+$/)) {
       alert('Please enter a valid flight number (numbers only).');
       flightInput.focus();
@@ -616,6 +594,7 @@
     navigateToFlightStatus(flightNumber, dateString);
   }
 </script>
+
 
 
 
