@@ -281,13 +281,12 @@
 
   // 🔧 FORCE TODAY (for testing)
   function forceToday() {
-    // Set a fake "today" for testing logic
-    // Example: Uncomment the line below to force the date used
-    return new Date('2025-06-17'); 
-
-    //uncomment the line below to use the real date
-    //return new Date(); // use real current date
+  const testDate = new Date('2025-06-17'); // uncomment this line for testing specific date
+  //const testDate = new Date(); // use this line for the actual date
+  testDate.setHours(0, 0, 0, 0); // normalize to local midnight
+  return testDate;
   }
+
 
   function initializeFlightInput() {
     const savedFlight = localStorage.getItem('savedFlight');
