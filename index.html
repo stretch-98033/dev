@@ -119,12 +119,12 @@
     }
 
     .favorite {
-      flex: 1 1 18%;
-      max-width: 90px;
-      min-width: 60px;
+      flex: 1 1 42%;
+      max-width: 180px;
+      min-width: 110px;
       padding: 10px 6px;
       font-size: 0.85em;
-      font-weight: 600;
+      font-weight: 500;
       border-radius: var(--border-radius);
       text-align: center;
       cursor: pointer;
@@ -246,6 +246,9 @@
       color: gold;
       text-shadow: 0 0 2px #c4a300;
       transition: color 0.3s ease;
+      position: absolute;
+      top: -6px;
+      left: 2px;
     }
 
     .favorite-btn.inactive {
@@ -457,7 +460,8 @@
 
       // Check if favorite
       const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-      const isFav = favorites.includes(`${flight}|${dateString}`);
+      const isFav = favorites.includes(`${flight}`);
+      // const isFav = favorites.includes(`${flight}|${dateString}`);
       if (!isFav) {
         favBtn.classList.add('inactive');
       }
