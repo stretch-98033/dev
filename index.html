@@ -363,14 +363,6 @@
     displayFavorites();
   });
 
-    rememberBox.addEventListener('change', () => {
-  if (rememberBox.checked) {
-    localStorage.setItem('savedFlight', flightInput.value);
-  } else {
-    localStorage.removeItem('savedFlight');
-    flightInput.value = '';
-  }
-});
 
 function forceToday() {
   // ⬇️ Uncomment this line to force a specific test date (e.g. June 17, 2025)
@@ -479,7 +471,7 @@ function forceToday() {
 
     favBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      toggleFavorite(flight, favBtn);
+      toggleFavorite(flight);
     });
 
     badge.appendChild(favBtn);
@@ -494,13 +486,12 @@ function forceToday() {
     return badge;
   }
 
-function toggleFavorite(flight, dateString, clickedBtn) {
+function toggleFavorite(flight) {
   let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-  const key = `${flight}`;
-  const index = favorites.indexOf(key);
+  const index = favorites.indexOf(flight);
 
   if (index === -1) {
-    favorites.push(key);
+    favorites.push(flight);
   } else {
     favorites.splice(index, 1);
   }
@@ -520,6 +511,7 @@ function toggleFavorite(flight, dateString, clickedBtn) {
     }
   });
 }
+
 
 
   function displayFavorites() {
