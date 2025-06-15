@@ -365,10 +365,10 @@
 
 function forceToday() {
   // ⬇️ Uncomment this line to force a specific test date (e.g. June 17, 2025)
-   const overrideDate = '2025-06-25';
+  // const overrideDate = '2025-06-25';
 
   // ⬇️ Leave this line as-is for production
-  //const overrideDate = null;
+  const overrideDate = null;
 
   const testDate = overrideDate ? new Date(overrideDate) : new Date();
   testDate.setHours(0, 0, 0, 0);
