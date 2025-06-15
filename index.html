@@ -363,6 +363,15 @@
     displayFavorites();
   });
 
+    rememberBox.addEventListener('change', () => {
+  if (rememberBox.checked) {
+    localStorage.setItem('savedFlight', flightInput.value);
+  } else {
+    localStorage.removeItem('savedFlight');
+    flightInput.value = '';
+  }
+});
+
 function forceToday() {
   // ⬇️ Uncomment this line to force a specific test date (e.g. June 17, 2025)
   // const overrideDate = '2025-06-25';
@@ -389,13 +398,7 @@ function forceToday() {
       rememberBox.checked = true;
     }
 
-    rememberBox.addEventListener('change', () => {
-      if (!rememberBox.checked) {
-        localStorage.removeItem('savedFlight');
-        flightInput.value = '';
-      }
-    });
-
+   
     offsetSelect.addEventListener('change', updateWarningMessage);
     updateWarningMessage();
 
