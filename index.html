@@ -363,11 +363,19 @@
     displayFavorites();
   });
 
-  function forceToday() {
-    const testDate = new Date();
-    testDate.setHours(0, 0, 0, 0);
-    return testDate;
-  }
+function forceToday() {
+  // ⬇️ Uncomment this line to force a specific test date (e.g. June 17, 2025)
+   const overrideDate = '2025-06-17';
+
+  // ⬇️ Leave this line as-is for production
+  //const overrideDate = null;
+
+  const testDate = overrideDate ? new Date(overrideDate) : new Date();
+  testDate.setHours(0, 0, 0, 0);
+  return testDate;
+}
+
+
 
   function initializeFlightInput() {
     const savedFlight = localStorage.getItem('savedFlight');
