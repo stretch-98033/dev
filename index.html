@@ -599,7 +599,8 @@ function lookupFlight() {
   const offset = parseInt(document.getElementById("offset").value);
   const remember = document.getElementById("remember").checked;
 
-  if (!/^\d+$/.test(flight) || !((flight >= 0 && flight <= 3500) || (flight >= 9000 && flight <= 9999))) {
+  if (!/^
+\d+$/.test(flight) || !((flight >= 0 && flight <= 3500) || (flight >= 9000 && flight <= 9999))) {
     alert("Please enter a valid flight number (0–3500 or 9000–9999).");
     return;
   }
@@ -611,7 +612,8 @@ function lookupFlight() {
   const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
   const dd = String(targetDate.getDate()).padStart(2, '0');
   const dateString = `${yyyy}-${mm}-${dd}`;
-  const url = `https://www.alaskaair.com/status/${flight}/${dateString}`;
+  const flightStatusUrl = `https://www.alaskaair.com/status/${flight}/${dateString}`;
+  const known404Image = "https://images.contentstack.io/v3/assets/blt2cefe12c88e9dd91/blt421ff0fccb35da3a/new-404";
 
   if (remember) {
     localStorage.setItem('savedFlight', flight);
@@ -619,29 +621,35 @@ function lookupFlight() {
     localStorage.removeItem('savedFlight');
   }
 
-  const img = new Image();
-  img.onload = () => {
-    let searches = JSON.parse(localStorage.getItem('searches') || '[]');
-    const key = `${flight}|${dateString}`;
-    if (!searches.includes(key)) {
-      searches.unshift(key);
-      if (searches.length > 20) {
-        searches.pop();
+  const testImage = new Image();
+  testImage.onload = () => {
+    // Image loaded. Check if it matches the 404 image dimensions.
+    if (testImage.src.includes("new-404")) {
+      alert(`Flight AS${flight} for ${dateString} not found. Please verify the flight number and try again later.`);
+    } else {
+      let searches = JSON.parse(localStorage.getItem('searches') || '[]');
+      const key = `${flight}|${dateString}`;
+      if (!searches.includes(key)) {
+        searches.unshift(key);
+        if (searches.length > 20) {
+          searches.pop();
+        }
+        localStorage.setItem('searches', JSON.stringify(searches));
       }
-      localStorage.setItem('searches', JSON.stringify(searches));
+
+      displaySearchHistory();
+      window.location.href = flightStatusUrl;
     }
-
-    displaySearchHistory();
-    window.location.href = url;
   };
 
-  img.onerror = () => {
-    alert(`Flight AS${flight} for ${dateString} not found. Please verify the flight number and try again later.`);
+  testImage.onerror = () => {
+    alert(`Unable to verify flight AS${flight}. Please check your connection and try again.`);
   };
 
-  img.src = url;
+  testImage.src = known404Image;
 }
 </script>
+
 
 
 
