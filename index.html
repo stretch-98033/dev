@@ -372,26 +372,30 @@ function initializeFlightInput() {
   const offsetSelect = document.getElementById('offset');
   const warningMessage = document.getElementById('warningMessage');
 
+  // Set initial input state
   if (savedFlight) {
     flightInput.value = savedFlight;
     rememberBox.checked = true;
   }
 
+  // Save flight number as user types (if "remember" is checked)
   flightInput.addEventListener('input', () => {
     if (rememberBox.checked) {
       localStorage.setItem('savedFlight', flightInput.value.trim());
     }
   });
 
+  // Save or clear savedFlight based on checkbox state
   rememberBox.addEventListener('change', () => {
     if (rememberBox.checked) {
       localStorage.setItem('savedFlight', flightInput.value.trim());
     } else {
       localStorage.removeItem('savedFlight');
-      flightInput.value = '';
+      flightInput.value = ''; // clear the input
     }
   });
 
+  // Handle date offset warning
   offsetSelect.addEventListener('change', updateWarningMessage);
   updateWarningMessage();
 
@@ -416,7 +420,7 @@ function initializeFlightInput() {
 }
 
 function forceToday() {
-  const overrideDate = null;
+  const overrideDate = null; // Change this to a string like '2025-06-25' for testing
   const testDate = overrideDate ? new Date(overrideDate) : new Date();
   testDate.setHours(0, 0, 0, 0);
   return testDate;
@@ -507,6 +511,7 @@ function toggleFavorite(flight) {
   localStorage.setItem('favorites', JSON.stringify(favorites));
   displayFavorites();
 
+  // Update all favorite buttons for this flight
   document.querySelectorAll(`.favorite-btn`).forEach(oldBtn => {
     const badge = oldBtn.closest('.badge');
     if (badge && badge.dataset.flight === flight) {
@@ -579,6 +584,7 @@ function createDeleteButton(flight, dateString, searches, badge) {
       searches.splice(index, 1);
       localStorage.setItem('searches', JSON.stringify(searches));
       displaySearchHistory();
+      //removeFromFavorites(flight); // also removes from favorites if needed
     }
   });
 
@@ -594,16 +600,18 @@ function navigateToFlightStatus(flight, dateString) {
 }
 
 function lookupFlight() {
-  const flightInput = document.getElementById("flight");
-  const flight = flightInput.value.trim();
-  const offset = parseInt(document.getElementById("offset").value);
-  const remember = document.getElementById("remember").checked;
+  const flightInput = document.getElementById('flight');
+  const offsetSelect = document.getElementById('offset');
+  const rememberBox = document.getElementById('remember');
+  const flightNumber = flightInput.value.trim();
 
-  if (!/^\d+$/.test(flight) || !((flight >= 0 && flight <= 3500) || (flight >= 9000 && flight <= 9999))) {
-    alert("Please enter a valid flight number (0–3500 or 9000–9999).");
+  if (!flightNumber.match(/^\d+$/)) {
+    alert('Please enter a valid flight number (numbers only).');
+    flightInput.focus();
     return;
   }
 
+  const offset = parseInt(offsetSelect.value);
   const today = forceToday();
   const targetDate = new Date(today);
   targetDate.setDate(today.getDate() + offset);
@@ -611,45 +619,27 @@ function lookupFlight() {
   const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
   const dd = String(targetDate.getDate()).padStart(2, '0');
   const dateString = `${yyyy}-${mm}-${dd}`;
-  const flightStatusUrl = `https://www.alaskaair.com/status/${flight}/${dateString}`;
-  const known404Image = "https://images.contentstack.io/v3/assets/blt2cefe12c88e9dd91/blt421ff0fccb35da3a/new-404";
 
-  if (remember) {
-    localStorage.setItem('savedFlight', flight);
+  if (rememberBox.checked) {
+    localStorage.setItem('savedFlight', flightNumber);
   } else {
     localStorage.removeItem('savedFlight');
   }
 
-  const testImage = new Image();
-  testImage.onload = () => {
-    if (testImage.src.includes("new-404")) {
-      alert(`Flight AS${flight} for ${dateString} not found. Please verify the flight number and try again later.`);
-    } else {
-      let searches = JSON.parse(localStorage.getItem('searches') || '[]');
-      const key = `${flight}|${dateString}`;
-      if (!searches.includes(key)) {
-        searches.unshift(key);
-        if (searches.length > 20) {
-          searches.pop();
-        }
-        localStorage.setItem('searches', JSON.stringify(searches));
-      }
-
-      displaySearchHistory();
-      window.location.href = flightStatusUrl;
+  let searches = JSON.parse(localStorage.getItem('searches') || '[]');
+  const key = `${flightNumber}|${dateString}`;
+  if (!searches.includes(key)) {
+    searches.unshift(key);
+    if (searches.length > 20) {
+      searches.pop();
     }
-  };
+    localStorage.setItem('searches', JSON.stringify(searches));
+  }
 
-  testImage.onerror = () => {
-    alert(`Unable to verify flight AS${flight}. Please check your connection and try again.`);
-  };
-
-  testImage.src = known404Image;
+  displaySearchHistory();
+  navigateToFlightStatus(flightNumber, dateString);
 }
 </script>
-
-
-
 
 
 
