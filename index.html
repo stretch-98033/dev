@@ -600,44 +600,43 @@ function navigateToFlightStatus(flight, dateString) {
 }
 
 function lookupFlight() {
-  const flightInput = document.getElementById('flight');
-  const offsetSelect = document.getElementById('offset');
-  const rememberBox = document.getElementById('remember');
-  const flightNumber = flightInput.value.trim();
+  const flightInput = document.getElementById("flight");
+  const flight = flightInput.value.trim();
+  const offset = parseInt(document.getElementById("offset").value);
+  const remember = document.getElementById("remember").checked;
 
-  if (!flightNumber.match(/^\d+$/)) {
-    alert('Please enter a valid flight number (numbers only).');
+  if (!/^\d+$/.test(flight) || !((flight >= 0 && flight <= 3500) || (flight >= 9000 && flight <= 9999))) {
+    alert("Please enter a valid flight number (0-3500 or 9000-9999).");
     flightInput.focus();
     return;
   }
 
-  const offset = parseInt(offsetSelect.value);
   const today = forceToday();
   const targetDate = new Date(today);
   targetDate.setDate(today.getDate() + offset);
   const yyyy = targetDate.getFullYear();
-  const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
-  const dd = String(targetDate.getDate()).padStart(2, '0');
+  const mm = String(targetDate.getMonth() + 1).padStart(2, "0");
+  const dd = String(targetDate.getDate()).padStart(2, "0");
   const dateString = `${yyyy}-${mm}-${dd}`;
 
-  if (rememberBox.checked) {
-    localStorage.setItem('savedFlight', flightNumber);
+  if (remember) {
+    localStorage.setItem("savedFlight", flight);
   } else {
-    localStorage.removeItem('savedFlight');
+    localStorage.removeItem("savedFlight");
   }
 
-  let searches = JSON.parse(localStorage.getItem('searches') || '[]');
-  const key = `${flightNumber}|${dateString}`;
+  let searches = JSON.parse(localStorage.getItem("searches") || "[]");
+  const key = `${flight}|${dateString}`;
   if (!searches.includes(key)) {
     searches.unshift(key);
     if (searches.length > 20) {
       searches.pop();
     }
-    localStorage.setItem('searches', JSON.stringify(searches));
+    localStorage.setItem("searches", JSON.stringify(searches));
   }
 
   displaySearchHistory();
-  navigateToFlightStatus(flightNumber, dateString);
+  navigateToFlightStatus(flight, dateString);
 }
 </script>
 
