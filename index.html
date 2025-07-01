@@ -599,8 +599,7 @@ function lookupFlight() {
   const offset = parseInt(document.getElementById("offset").value);
   const remember = document.getElementById("remember").checked;
 
-  if (!/^
-\d+$/.test(flight) || !((flight >= 0 && flight <= 3500) || (flight >= 9000 && flight <= 9999))) {
+  if (!/^\d+$/.test(flight) || !((flight >= 0 && flight <= 3500) || (flight >= 9000 && flight <= 9999))) {
     alert("Please enter a valid flight number (0–3500 or 9000–9999).");
     return;
   }
@@ -623,7 +622,6 @@ function lookupFlight() {
 
   const testImage = new Image();
   testImage.onload = () => {
-    // Image loaded. Check if it matches the 404 image dimensions.
     if (testImage.src.includes("new-404")) {
       alert(`Flight AS${flight} for ${dateString} not found. Please verify the flight number and try again later.`);
     } else {
@@ -649,6 +647,7 @@ function lookupFlight() {
   testImage.src = known404Image;
 }
 </script>
+
 
 
 
